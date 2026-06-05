@@ -1,23 +1,20 @@
 include "root" {
-  path = find_in_parent_folders("terragrunt.hcl")
+  path = find_in_parent_folders("root.hcl")
 }
 
 locals {
   common     = read_terragrunt_config(find_in_parent_folders("common.hcl"))
   env        = "prod"
   env_config = local.common.locals.environments[local.env]
-  module_conf = read_terragrunt_config("${get_parent_terragrunt_dir()}/module.hcl")
 }
 
 terraform {
-  source = local.module_conf.locals.module_source
+  source = "${get_repo_root()}/modules/security-cluster"
 }
 
 dependency "network" {
   config_path = "../../network/prod"
-  mock_outputs = {
-    network_ids = {}
-  }
+  mock_outputs = { network_ids = {} }
 }
 
 generate "providers" {
@@ -45,24 +42,39 @@ generate "providers" {
 inputs = {
   region = local.env_config.region
 
-  # Note : le module security est appelé en for_each dans le main.tf original.
-  # Ici on passe directement les variables attendues par UNE instance du module.
-  # Il faudra adapter le module OU créer un wrapper. Voir note ci-dessous.
-  name   = "infra-prod-fwfe01"
-  flavor = "58a6c33c-8c3d-4a94-8d03-2153139832b8"
-  image  = "042e000e-55b0-4c3c-8398-60d853d886f5"
+  firewalls = {
+    "fwfe01" = {
+      name   = "infra-prod-fwfe01"
+      flavor = "58a6c33c-8c3d-4a94-8d03-2153139832b8"
+      image  = "042e000e-55b0-4c3c-8398-60d853d886f5"
+      networks = [
+        { name = "prod-production-app-front-10.13.0.0-24", ip = "10.13.0.251", enabled = true },
+        { name = "prod-production-k8s-front-10.11.60.0-24", ip = "10.11.60.251", enabled = true },
+        { name = "prod-production-dmz-exposed-10.11.30.0-24", ip = "10.11.30.251", enabled = true },
+        { name = "prod-production-vrack-vpn-10.11.10.0-24", ip = "10.11.10.251", enabled = true },
+        { name = "prod-production-fw-interco-172.16.21.16-28", ip = "172.16.21.29", enabled = true },
+        { name = "prod-production-fwfe-ha-172.16.21.32-28", ip = "172.16.21.45", enabled = true },
+        { name = "prod-production-fwfe-admin-10.11.20.0-24", ip = "10.11.20.251", enabled = true },
+        { name = "prod-production-fw-front-5.135.49.0-25", ip = "5.135.49.96", enabled = true },
+      ]
+      tags = { Owner = "infra-team", Env = "prod", Role = "master" }
+    }
 
-  networks = [
-    { name = "prod-production-app-front-10.13.0.0-24", ip = "10.13.0.251", enabled = true },
-    { name = "prod-production-k8s-front-10.11.60.0-24", ip = "10.11.60.251", enabled = true },
-    { name = "prod-production-dmz-transit-10.11.70.0-24", ip = "10.11.70.251", enabled = true },
-    { name = "prod-production-dmz-exposed-10.11.30.0-24", ip = "10.11.30.251", enabled = true },
-    { name = "prod-production-vrack-vpn-10.11.10.0-24", ip = "10.11.10.251", enabled = true },
-    { name = "prod-production-fw-interco-172.16.21.16-28", ip = "172.16.21.29", enabled = true },
-    { name = "prod-production-fwfe-ha-172.16.21.32-28", ip = "172.16.21.45", enabled = true },
-    { name = "prod-production-fwfe-admin-10.11.20.0-24", ip = "10.11.20.251", enabled = true },
-    { name = "prod-production-fw-front-5.135.49.0-25", ip = "5.135.49.96", enabled = true },
-  ]
-
-  tags = { Owner = "infra-team", Env = "prod", Role = "master" }
+    "fwfe02" = {
+      name   = "infra-prod-fwfe02"
+      flavor = "58a6c33c-8c3d-4a94-8d03-2153139832b8"
+      image  = "042e000e-55b0-4c3c-8398-60d853d886f5"
+      networks = [
+        { name = "prod-production-app-front-10.13.0.0-24", ip = "10.13.0.252", enabled = true },
+        { name = "prod-production-k8s-front-10.11.60.0-24", ip = "10.11.60.252", enabled = true },
+        { name = "prod-production-dmz-exposed-10.11.30.0-24", ip = "10.11.30.252", enabled = true },
+        { name = "prod-production-vrack-vpn-10.11.10.0-24", ip = "10.11.10.252", enabled = true },
+        { name = "prod-production-fw-interco-172.16.21.16-28", ip = "172.16.21.28", enabled = true },
+        { name = "prod-production-fwfe-ha-172.16.21.32-28", ip = "172.16.21.44", enabled = true },
+        { name = "prod-production-fwfe-admin-10.11.20.0-24", ip = "10.11.20.252", enabled = true },
+        { name = "prod-production-fw-front-5.135.49.0-25", ip = "5.135.49.97", enabled = true },
+      ]
+      tags = { Owner = "infra-team", Env = "prod", Role = "slave" }
+    }
+  }
 }

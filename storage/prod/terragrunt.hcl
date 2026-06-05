@@ -1,23 +1,17 @@
 include "root" {
-  path = find_in_parent_folders("terragrunt.hcl")
-}
-
-include "module" {
-  path = "${get_parent_terragrunt_dir()}/module.hcl"
+  path = find_in_parent_folders("root.hcl")
 }
 
 locals {
-  common      = read_terragrunt_config(find_in_parent_folders("common.hcl"))
-  env         = "prod"
-  env_config  = local.common.locals.environments[local.env]
-  module_conf = read_terragrunt_config("${get_parent_terragrunt_dir()}/module.hcl")
+  common     = read_terragrunt_config(find_in_parent_folders("common.hcl"))
+  env        = "prod"
+  env_config = local.common.locals.environments[local.env]
 }
 
 terraform {
-  source = local.module_conf.locals.module_source
+  source = "${get_repo_root()}/modules/storage"
 }
 
-# Génération du provider OVH + Vault dynamique
 generate "providers" {
   path      = "_providers.tf"
   if_exists = "overwrite_terragrunt"

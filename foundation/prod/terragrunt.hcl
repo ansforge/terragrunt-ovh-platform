@@ -1,16 +1,15 @@
 include "root" {
-  path = find_in_parent_folders("terragrunt.hcl")
+  path = find_in_parent_folders("root.hcl")
 }
 
 locals {
   common     = read_terragrunt_config(find_in_parent_folders("common.hcl"))
   env        = "prod"
   env_config = local.common.locals.environments[local.env]
-  module_conf = read_terragrunt_config("${get_terragrunt_dir()}/../module.hcl")
 }
 
 terraform {
-  source = local.module_conf.locals.module_source
+  source = "${get_repo_root()}/modules/foundation"
 }
 
 dependencies {
@@ -56,7 +55,6 @@ inputs = {
       ]
       tags = { Owner = "infra-team", Env = "prod", App = "ansible" }
     }
-
     proxy = {
       name          = "infra-prod-proxy01"
       flavor_id     = "94d7bb57-156a-4e7d-8840-1e9e4bcbe304"
@@ -69,7 +67,6 @@ inputs = {
       ]
       tags = { Owner = "infra-team", Env = "prod", App = "squid" }
     }
-
     repo = {
       name          = "infra-prod-repo01"
       flavor_id     = "94d7bb57-156a-4e7d-8840-1e9e4bcbe304"
@@ -79,7 +76,6 @@ inputs = {
       networks      = [{ name = "prod-production-infra-app-10.11.90.0-24", ip = "10.11.90.12", enabled = true }]
       tags          = { Owner = "infra-team", Env = "prod", App = "repo" }
     }
-
     freeipa = {
       name          = "infra-prod-freeipa01"
       flavor_id     = "94d7bb57-156a-4e7d-8840-1e9e4bcbe304"

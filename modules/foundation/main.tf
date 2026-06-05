@@ -48,7 +48,7 @@ resource "openstack_networking_port_v2" "vm_ports" {
           ip       = net.ip
         }
       ]
-    ]) : "${pair.vm_key}_${pair.net_name}" => pair
+    ]) : "${pair.vm_key}_${pair.net_name}" => pair if pair.net_name != "Ext-Net"
   }
 
   name                  = "port-${each.value.vm_key}-${each.value.net_name}"
@@ -79,9 +79,9 @@ resource "openstack_compute_instance_v2" "vm" {
   key_pair  = openstack_compute_keypair_v2.vm_kp[each.key].name
 
   metadata = each.value.tags
-
   network {
-    port = openstack_networking_port_v2.vm_ports["${each.key}_${each.value.networks[0].name}"].id
+    name = each.value.networks[0].name == "Ext-Net" ? "Ext-Net" : null
+    port = each.value.networks[0].name != "Ext-Net" ? openstack_networking_port_v2.vm_ports["${each.key}_${each.value.networks[0].name}"].id : null
   }
 
   lifecycle {
@@ -131,7 +131,7 @@ resource "openstack_compute_interface_attach_v2" "ai" {
           index  = i
         }
       ]
-    ]) : "${pair.vm_key}_${pair.name}" => pair if pair.index > 0
+    ]) : "${pair.vm_key}_${pair.name}" => pair if pair.index > 0 && pair.name != "Ext-Net"
   }
 
   instance_id = openstack_compute_instance_v2.vm[each.value.vm_key].id

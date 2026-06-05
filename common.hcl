@@ -1,9 +1,4 @@
-# ─────────────────────────────────────────────────────────────────
-# common.hcl — Variables partagées entre TOUS les environnements
-# ─────────────────────────────────────────────────────────────────
-
 locals {
-  # Mapping environnement → configuration OVH
   environments = {
     prod = {
       ovh_project_id = "2b264defd5244f52b8edbd6c9239a325"
@@ -20,14 +15,14 @@ locals {
       net_prefix     = "preprod-amont"
     }
     outils = {
-      ovh_project_id = "XXXXXXXX"  # À compléter
-      region         = "SBG5"
+      ovh_project_id = "51b48fc072e34415922eb448c8121677"
+      region         = "EU-WEST-PAR"
       vault_mount    = "iacrunner-outils"
       name_prefix    = "infra-outils"
       net_prefix     = "outils"
     }
     test = {
-      ovh_project_id = "XXXXXXXX"  # À compléter
+      ovh_project_id = "XXXXXXXX"
       region         = "SBG5"
       vault_mount    = "iacrunner-test"
       name_prefix    = "infra-test"
