@@ -67,6 +67,7 @@ inputs = {
     "fwbe_admin"  = { vlan_id = 150, name = "prod-production-fwbe-admin-10.11.50.0-24", cidr = "10.11.50.0/24", start = "10.11.50.51", end = "10.11.50.100" }
     "infra_admin" = { vlan_id = 151, name = "prod-production-infra-admin-10.11.51.0-24", cidr = "10.11.51.0/24", start = "10.11.51.51", end = "10.11.51.100" }
     "dmz_admin"   = { vlan_id = 152, name = "prod-production-dmz-admin-10.11.52.0-24", cidr = "10.11.52.0/24", start = "10.11.52.51", end = "10.11.52.100", enable_dhcp = true, gateway_ip = "10.11.52.254" }
+    "wab_admin"   = { vlan_id = 154, name = "prod-production-wab-admin-10.11.54.0-24", cidr = "10.11.54.0/24", start = "10.11.54.51", end = "10.11.54.100", enable_dhcp = true, gateway_ip = "10.11.54.1" }
     "k8s_front"   = { vlan_id = 160, name = "prod-production-k8s-front-10.11.60.0-24", cidr = "10.11.60.0/24", start = "10.11.60.51", end = "10.11.60.100" }
     "k8s_back"    = { vlan_id = 161, name = "prod-production-k8s-back-10.11.61.0-24", cidr = "10.11.61.0/24", start = "10.11.61.51", end = "10.11.61.100" }
     "dmz_transit" = { vlan_id = 170, name = "prod-production-dmz-transit-10.11.70.0-24", cidr = "10.11.70.0/24", start = "10.11.70.51", end = "10.11.70.100", enable_dhcp = false }
@@ -76,5 +77,7 @@ inputs = {
     "app_back"    = { vlan_id = 302, name = "prod-production-app-back-10.13.2.0-24", cidr = "10.13.2.0/24", start = "10.13.2.51", end = "10.13.2.100" }
     "infra_app"   = { vlan_id = 190, name = "prod-production-infra-app-10.11.90.0-24", cidr = "10.11.90.0/24", start = "10.11.90.51", end = "10.11.90.100", enable_dhcp = true, gateway_ip = "10.11.90.254" }
     "dmz_exposed" = { vlan_id = 130, name = "prod-production-dmz-exposed-10.11.30.0-24", cidr = "10.11.30.0/24", start = "10.11.30.51", end = "10.11.30.100", enable_dhcp = true, gateway_ip = "10.11.30.251" }
+    "mie_preproduction_front"   = { vlan_id = 38, name = "mie_preproduction_front-10.0.6.96-27", cidr = "10.0.6.96/27", gateway = "10.0.6.126", start = "10.0.6.97", end = "10.0.6.125" }
+    "mie_production_front"   = { vlan_id = 87, name = "mie_production_front-10.0.5.160-28", cidr = "10.0.5.160/28",  gateway = "10.0.5.174", start = "10.0.5.161", end = "10.0.5.171" }
   }
 }

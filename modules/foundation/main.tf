@@ -5,6 +5,51 @@ terraform {
   }
 }
 
+locals {
+  # Disques historiques (extra_disk_gb) : clés inchangées => aucun volume existant détruit
+  legacy_extra_disks = {
+    for k, v in var.vms : k => {
+      vm_key      = k
+      size        = v.extra_disk_gb
+      name        = "infra-prod-${k}-extra"
+      volume_type = null
+    } if v.extra_disk_gb > 0
+  }
+
+  # Disques multiples (extra_disks) : clés "<vm>_data<N>"
+  additional_extra_disks = {
+    for d in flatten([
+      for k, v in var.vms : [
+        for i, disk in v.extra_disks : {
+          key         = "${k}_data${i + 1}"
+          vm_key      = k
+          size        = disk.size
+          name        = disk.name != null ? disk.name : "infra-prod-${k}-data${i + 1}"
+          volume_type = disk.type
+        }
+      ]
+    ]) : d.key => d
+  }
+
+  all_extra_disks = merge(local.legacy_extra_disks, local.additional_extra_disks)
+
+  # Image effective de chaque VM : résolue par nom si image_name est fourni
+  vm_image_ids = {
+    for k, v in var.vms : k => (
+      v.image_name != null
+      ? data.openstack_images_image_v2.by_name[v.image_name].id
+      : v.image_id
+    )
+  }
+}
+
+data "openstack_images_image_v2" "by_name" {
+  for_each = toset([for k, v in var.vms : v.image_name if v.image_name != null])
+
+  name        = each.value
+  most_recent = true
+}
+
 resource "tls_private_key" "vm_key" {
   for_each  = var.vms
   algorithm = "RSA"
@@ -74,11 +119,12 @@ resource "openstack_compute_instance_v2" "vm" {
   for_each = var.vms
 
   name      = each.value.name
-  image_id  = each.value.image_id
+  image_id  = local.vm_image_ids[each.key]
   flavor_id = each.value.flavor_id
   key_pair  = openstack_compute_keypair_v2.vm_kp[each.key].name
 
   metadata = each.value.tags
+
   network {
     name = each.value.networks[0].name == "Ext-Net" ? "Ext-Net" : null
     port = each.value.networks[0].name != "Ext-Net" ? openstack_networking_port_v2.vm_ports["${each.key}_${each.value.networks[0].name}"].id : null
@@ -99,10 +145,11 @@ resource "openstack_compute_instance_v2" "vm" {
 }
 
 resource "openstack_blockstorage_volume_v3" "extra_disk" {
-  for_each = { for k, v in var.vms : k => v if v.extra_disk_gb > 0 }
+  for_each = local.all_extra_disks
 
-  name = "infra-prod-${each.key}-extra"
-  size = each.value.extra_disk_gb
+  name        = each.value.name
+  size        = each.value.size
+  volume_type = each.value.volume_type
 
   lifecycle {
     prevent_destroy = false
@@ -111,10 +158,10 @@ resource "openstack_blockstorage_volume_v3" "extra_disk" {
 }
 
 resource "openstack_compute_volume_attach_v2" "attach_extra" {
-  for_each = openstack_blockstorage_volume_v3.extra_disk
+  for_each = local.all_extra_disks
 
-  instance_id = openstack_compute_instance_v2.vm[each.key].id
-  volume_id   = each.value.id
+  instance_id = openstack_compute_instance_v2.vm[each.value.vm_key].id
+  volume_id   = openstack_blockstorage_volume_v3.extra_disk[each.key].id
 
   lifecycle {
     ignore_changes = all

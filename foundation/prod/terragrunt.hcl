@@ -43,9 +43,10 @@ inputs = {
   ovh_project_id = local.env_config.ovh_project_id
 
   vms = {
+    # ─── VMs existantes : on garde leur image_id d'origine (ignore_changes) ───
     tfansible = {
       name          = "infra-prod-tfansible01"
-      flavor_id     = "94d7bb57-156a-4e7d-8840-1e9e4bcbe304"
+      flavor_id     = "94d7bb57-156a-4e7d-8840-1e9e4bcbe304" # c3-4
       image_id      = "587c721d-e39f-4061-8e42-059104b88f21"
       key_name      = "vm-tfansible-key"
       extra_disk_gb = 0
@@ -55,6 +56,7 @@ inputs = {
       ]
       tags = { Owner = "infra-team", Env = "prod", App = "ansible" }
     }
+
     proxy = {
       name          = "infra-prod-proxy01"
       flavor_id     = "94d7bb57-156a-4e7d-8840-1e9e4bcbe304"
@@ -67,6 +69,7 @@ inputs = {
       ]
       tags = { Owner = "infra-team", Env = "prod", App = "squid" }
     }
+
     repo = {
       name          = "infra-prod-repo01"
       flavor_id     = "94d7bb57-156a-4e7d-8840-1e9e4bcbe304"
@@ -76,6 +79,7 @@ inputs = {
       networks      = [{ name = "prod-production-infra-app-10.11.90.0-24", ip = "10.11.90.12", enabled = true }]
       tags          = { Owner = "infra-team", Env = "prod", App = "repo" }
     }
+
     freeipa = {
       name          = "infra-prod-freeipa01"
       flavor_id     = "94d7bb57-156a-4e7d-8840-1e9e4bcbe304"
@@ -85,5 +89,72 @@ inputs = {
       networks      = [{ name = "prod-production-infra-app-10.11.90.0-24", ip = "10.11.90.13", enabled = true }]
       tags          = { Owner = "infra-team", Env = "prod", App = "freeipa" }
     }
+
+    # ─── VM déjà créée lors du dernier apply ───
+    win01 = {
+      name      = "infra-prod-win01"
+      flavor_id = "9e39a58b-2cd7-4e0d-81a5-4db15303b445" # win-b3-16
+      image_id  = "c07d5e87-e90e-44d1-9949-0d7aac3c58cb" # Windows Server 2025 Standard (Desktop)
+      key_name  = "vm-win01-key"
+      extra_disks = [
+        { name = "infra-prod-win01-data01", size = 100 },
+      ]
+      networks = [{ name = "prod-production-infra-app-10.11.90.0-24", ip = "10.11.90.16", enabled = true }]
+      tags     = { Owner = "infra-team", Env = "prod", App = "windows" }
+    }
+
+    # ─── VMs à créer : image résolue par NOM ───
+    freeipa02 = {
+      name          = "infra-prod-freeipa02"
+      flavor_id     = "94d7bb57-156a-4e7d-8840-1e9e4bcbe304" # c3-4
+      image_name    = "AlmaLinux 10"
+      key_name      = "vm-freeipa02-key"
+      extra_disk_gb = 0
+      networks      = [{ name = "prod-production-infra-app-10.11.90.0-24", ip = "10.11.90.15", enabled = true }]
+      tags          = { Owner = "infra-team", Env = "prod", App = "freeipa", Role = "replica" }
+    }
+
+
+
+    nfs01 = {
+      name       = "infra-prod-nfs01"
+      flavor_id  = "94d7bb57-156a-4e7d-8840-1e9e4bcbe304" # c3-4
+      image_name = "AlmaLinux 10"
+      key_name   = "vm-nfs01-key"
+      extra_disks = [
+        { name = "infra-prod-nfs01-data01", size = 300 },
+        { name = "infra-prod-nfs01-data02", size = 300 },
+      ]
+      networks = [{ name = "prod-production-infra-app-10.11.90.0-24", ip = "10.11.90.17", enabled = true }]
+      tags     = { Owner = "infra-team", Env = "prod", App = "nfs" }
+    }
+
+
+  sup = {
+      name          = "infra-prod-sup01"
+      flavor_id     = "94d7bb57-156a-4e7d-8840-1e9e4bcbe304"
+      image_name      = "AlmaLinux 10"
+      key_name      = "vm-sup-key"
+      extra_disk_gb = 200
+      networks      = [{ name = "prod-production-infra-app-10.11.90.0-24", ip = "10.11.90.18", enabled = true }]
+      tags          = { Owner = "infra-team", Env = "prod", App = "supervision" }
+    }
+
+    # ─── VMs à créer : SPW ───
+
+     spw-preprod = {
+       name          = "spw-preprod-rp01"
+       flavor_id     = "94d7bb57-156a-4e7d-8840-1e9e4bcbe304" # c3-4
+       image_name    = "AlmaLinux 10"
+       key_name      = "vm-spw-preprod-rp01-key"
+       extra_disk_gb = 0
+       networks = [
+         { name = "prod-production-infra-app-10.11.90.0-24", ip = "10.11.90.19", enabled = true },
+         { name = "mie_preproduction_front-10.0.6.96-27", ip = "10.0.6.100", enabled = true },
+       ]
+       tags          = { Owner = "app-team", Env = "preprod", App = "spw" }
+     }
+
+
   }
 }
