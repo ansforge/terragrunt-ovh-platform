@@ -114,6 +114,29 @@ storage ──► network ──► security ──► foundation
 
 Chaque layer peut dépendre du précédent via les blocs `dependency` de Terragrunt.
 
+## Ajout d'une VM (fichier YAML) et pipeline de provisionnement
+
+Une VM du layer `foundation` peut être déclarée par un fichier `foundation/<env>/vms/<cle_vm>.yaml`
+(format : voir [`foundation/prod/vms/README.md`](foundation/prod/vms/README.md)). Les VMs inline existantes
+restent prioritaires et inchangées.
+
+La création **et** le provisionnement Ansible (DNS, dépôts, NTP, FreeIPA…) sont enchaînés par la pipeline
+`ovh-vm` (dépôt d'orchestration), qui consomme la sortie `vm_inventory` du module `foundation` :
+
+```bash
+ovh-vm deploy --env prod --vm-key spw-preprod2     # plan + garde-fou + apply + provisionnement + validation
+terragrunt output -json vm_inventory               # (depuis foundation/<env>) données consommées par Ansible
+```
+
+Tests du module (fournisseurs simulés, aucun appel OpenStack) :
+
+```bash
+cd modules/foundation && terraform init -backend=false && terraform test
+```
+
+> `.terragrunt-cache/` ne doit pas être versionné (688 fichiers, binaires de providers inclus) :
+> `git ls-files -z '*/.terragrunt-cache/*' | xargs -0 git rm --cached --quiet && git commit -m "chore: retrait des caches Terragrunt"`.
+
 ## Migration
 
 Ce dépôt est le résultat de la refactorisation de l'ancien mono-state Terraform en une architecture multi-layers Terragrunt (juin 2026).

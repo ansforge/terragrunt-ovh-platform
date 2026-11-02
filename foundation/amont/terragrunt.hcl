@@ -6,6 +6,13 @@ locals {
   common     = read_terragrunt_config(find_in_parent_folders("common.hcl"))
   env        = "amont"
   env_config = local.common.locals.environments[local.env]
+
+  # VMs déclarées en fichiers YAML : vms/<cle_vm>.yaml (1 fichier = 1 VM, voir foundation/prod/vms/README.md).
+  # Les VMs déclarées inline dans `inputs.vms` restent prioritaires en cas de clé identique.
+  vm_specs = {
+    for f in fileset("${get_terragrunt_dir()}/vms", "*.yaml") :
+    trimsuffix(f, ".yaml") => yamldecode(file("${get_terragrunt_dir()}/vms/${f}"))
+  }
 }
 
 terraform {
@@ -42,7 +49,7 @@ inputs = {
   region         = local.env_config.region
   ovh_project_id = local.env_config.ovh_project_id
 
-  vms = {
+  vms = merge(local.vm_specs, {
     tfansible = {
       name          = "infra-amont-tfansible01"
       flavor_id     = "acb62e0d-fa78-4a09-8e08-ba2e30fb4ff9"
@@ -86,5 +93,5 @@ inputs = {
       networks      = [{ name = "preprod-amont-infra-app-10.12.90.0-24", ip = "10.12.90.13", enabled = true }]
       tags          = { Owner = "infra-team", Env = "amont", App = "freeipa" }
     }
-  }
+  })
 }

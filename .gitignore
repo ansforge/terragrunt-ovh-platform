@@ -1,0 +1,14 @@
+# Caches locaux Terraform / Terragrunt (ne jamais versionner)
+.terragrunt-cache/
+.terraform/
+
+# Plans et états locaux : peuvent contenir des secrets (clés privées générées par tls_private_key)
+*.tfplan
+tfplan
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+
+# Rendus Terragrunt locaux
+terragrunt_rendered.json
