@@ -1,0 +1,14 @@
+# VM « safouane01 » (prod) générée par « ovh-vm spec-new » le 2026-11-02T13:20:07Z
+# Schéma : variable vms du module modules/foundation (voir vms/README.md)
+name: "infra-prod-test-safouane"
+flavor_id: "94d7bb57-156a-4e7d-8840-1e9e4bcbe304"
+image_name: "AlmaLinux 10"
+key_name: "vm-safouane01-key"
+networks:
+  - name: "prod-production-infra-app-10.11.90.0-24"
+    ip: "10.11.90.34"
+    enabled: true
+tags:
+  Owner: "infra-team"
+  Env: "prod"
+  App: "infra"
